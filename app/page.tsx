@@ -1,115 +1,94 @@
-'use client'; // クライアントコンポーネントとしてマーク
+'use client'
 
-import React, { useEffect, useRef, useState } from 'react';
-import useCameraHook from '@/hooks/useCamera';
+import { useEffect, useRef, useState } from 'react';
+import * as tf from '@tensorflow/tfjs';
 
-const Home = () => {
-  const { videoRef, startCamera } = useCameraHook();
-  const previousImageData = useRef<Uint8ClampedArray | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [blinkCount, setBlinkCount] = useState(0);
-  const [isBlinking, setIsBlinking] = useState(false);
-  const [latestRGB, setLatestRGB] = useState({ r: 0, g: 0, b: 0 });
+const LEDRecognition: React.FC = () => {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [count, setCount] = useState<number>(0);
+  const [lastFrameTime, setLastFrameTime] = useState<number>(0);
 
   useEffect(() => {
-    startCamera();
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+    const setupCamera = async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await new Promise((resolve) => {
+          videoRef.current!.onloadedmetadata = () => {
+            resolve(null);
+          };
+        });
+        videoRef.current.play();
       }
     };
-  }, [startCamera]);
 
-  useEffect(() => {
-    intervalRef.current = setInterval(handleCapture, 100); // 100msごとにキャプチャ
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+    setupCamera();
 
-  const handleCapture = async () => {
-    if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(videoRef.current, 0, 0);
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+    const detectLED = () => {
+      const context = canvasRef.current!.getContext('2d');
 
-      if (imageData) {
-        if (previousImageData.current) {
-          const isCurrentlyBlinking = detectBlink(previousImageData.current, imageData.data);
-          if (isCurrentlyBlinking && !isBlinking) {
-            setBlinkCount(prevCount => prevCount + 1); // 点滅をカウント
+      const detect = () => {
+        if (context && videoRef.current) {
+          context.drawImage(videoRef.current, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
+          const imageData = context.getImageData(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+          const data = imageData.data;
+
+          let ledDetected = false;
+
+          for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            // 赤色の範囲を判定
+            if (r > 150 && g < 100 && b < 100) {
+              ledDetected = true;
+              // LEDの位置を囲む
+              const x = (i / 4) % canvasRef.current!.width;
+              const y = Math.floor((i / 4) / canvasRef.current!.width);
+              context.strokeStyle = 'yellow';
+              context.strokeRect(x - 5, y - 5, 10, 10);
+            }
           }
-          setIsBlinking(isCurrentlyBlinking);
+
+          // LEDの点滅をカウント
+          const currentTime = Date.now();
+          if (ledDetected && lastFrameTime && currentTime - lastFrameTime > 500) {
+            setCount((prevCount) => prevCount + 1);
+          }
+          setLastFrameTime(currentTime);
         }
 
-        // RGB値を更新
-        const rgb = getAverageColor(imageData.data);
-        setLatestRGB(rgb);
+        requestAnimationFrame(detect);
+      };
 
-        previousImageData.current = imageData.data; // 現在の画像データを保存
-      }
-    }
-  };
-
-  const detectBlink = (prevData: Uint8ClampedArray, currData: Uint8ClampedArray) => {
-    const wasBlinking = analyzeColors(prevData) > 0;
-    const isBlinking = analyzeColors(currData) > 0;
-
-    return wasBlinking !== isBlinking; // 状態が変わった場合に点滅とみなす
-  };
-
-  const analyzeColors = (data: Uint8ClampedArray) => {
-    let redCount = 0;
-    
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-
-      // 赤色LEDの閾値を設定
-      if (r > 200 && g < 100 && b < 100) {
-        redCount++;
-      }
-    }
-
-    return redCount; // 赤色のピクセル数を返す
-  };
-
-  const getAverageColor = (data: Uint8ClampedArray) => {
-    let rTotal = 0, gTotal = 0, bTotal = 0;
-    const pixelCount = data.length / 4; // ピクセル数
-
-    for (let i = 0; i < data.length; i += 4) {
-      rTotal += data[i];     // 赤
-      gTotal += data[i + 1]; // 緑
-      bTotal += data[i + 2]; // 青
-    }
-
-    return {
-      r: Math.floor(rTotal / pixelCount),
-      g: Math.floor(gTotal / pixelCount),
-      b: Math.floor(bTotal / pixelCount),
+      detect();
     };
-  };
+
+    if (videoRef.current) {
+      videoRef.current.addEventListener('loadeddata', detectLED);
+    }
+
+    return () => {
+      if (videoRef.current) {
+        videoRef.current.removeEventListener('loadeddata', detectLED);
+      }
+    };
+  }, [lastFrameTime]);
 
   return (
     <div>
-      <h1>LED Binary Reader</h1>
-      <video 
-        ref={videoRef} 
-        style={{ width: '100%', height: 'auto' }} 
-        autoPlay 
-        playsInline 
-      />
-      <h2>点滅回数: {blinkCount}</h2>
-      <h3>最新のRGB: R: {latestRGB.r}, G: {latestRGB.g}, B: {latestRGB.b}</h3>
+      <h1>LED Recognition</h1>
+      <video ref={videoRef} width={640} height={480} style={{ display: 'none' }} />
+      <canvas ref={canvasRef} width={640} height={480} />
+      <div>
+        <h2>LED点滅回数: {count}</h2>
+      </div>
     </div>
   );
 };
 
-export default Home;
+export default LEDRecognition;
