@@ -10,7 +10,17 @@ const LEDRecognition: React.FC = () => {
   useEffect(() => {
     const setupCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // 利用可能なメディアデバイスを取得
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        // 外カメラを選択
+        const externalCamera = videoDevices.find(device => device.label.includes('back')) || videoDevices[0];
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: externalCamera.deviceId ? { exact: externalCamera.deviceId } : undefined },
+        });
+
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play();
