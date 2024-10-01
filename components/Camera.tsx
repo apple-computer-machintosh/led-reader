@@ -17,6 +17,7 @@ const Camera: React.FC = () => {
         }
       } catch (error) {
         console.error("Error accessing the camera: ", error);
+        alert("このデバイスではカメラが対応していません");
       }
     };
 
