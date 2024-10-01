@@ -51,35 +51,28 @@ const Home = () => {
   };
 
   const detectBlink = (prevData: Uint8ClampedArray, currData: Uint8ClampedArray) => {
-    const prevColor = analyzeColors(prevData);
-    const currColor = analyzeColors(currData);
+    const wasBlinking = analyzeColors(prevData) > 0;
+    const isBlinking = analyzeColors(currData) > 0;
 
-    // 点灯状態が変わったかをチェック
-    const wasBlinking = prevColor.red > 0 || prevColor.green > 0 || prevColor.blue > 0;
-    const isBlinking = currColor.red > 0 || currColor.green > 0 || currColor.blue > 0;
-
-    return wasBlinking !== isBlinking; // 状態が変わった場合に点滅とみなす
+    // 状態が変わった場合に点滅とみなす
+    return wasBlinking !== isBlinking;
   };
 
   const analyzeColors = (data: Uint8ClampedArray) => {
-    const colorCounts = { red: 0, green: 0, blue: 0 };
+    let redCount = 0;
     
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
 
-      // 簡易的な色検出
+      // 赤色LEDの閾値を設定
       if (r > 200 && g < 100 && b < 100) {
-        colorCounts.red++;
-      } else if (g > 200 && r < 100 && b < 100) {
-        colorCounts.green++;
-      } else if (b > 200 && r < 100 && g < 100) {
-        colorCounts.blue++;
+        redCount++;
       }
     }
 
-    return colorCounts;
+    return redCount; // 赤色のピクセル数を返す
   };
 
   return (
