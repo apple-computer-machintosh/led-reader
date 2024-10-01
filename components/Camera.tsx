@@ -8,16 +8,15 @@ const Camera: React.FC = () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            facingMode: 'environment' // 外カメラを指定
-          }
+            facingMode: 'environment', // 外カメラを指定
+          },
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.play();
         }
       } catch (error) {
-        console.error("Error accessing the camera: ", error);
-        alert("このデバイスではカメラが対応していません");
+        console.error('Error accessing the camera: ', error);
       }
     };
 
@@ -34,8 +33,8 @@ const Camera: React.FC = () => {
 
   return (
     <div>
-      <h1>HELLO外カメラ</h1>
-      <video ref={videoRef} style={{ width: '100%', height: 'auto' }} />
+      <h1>外カメラ</h1>
+      <video ref={videoRef} style={{ width: '100%', height: 'auto' }} autoPlay playsInline />
     </div>
   );
 };
