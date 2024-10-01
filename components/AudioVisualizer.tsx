@@ -22,7 +22,7 @@ const AudioVisualizer: React.FC = () => {
         const analyser = audioCtx.createAnalyser();
 
         // 音源の準備（相対パスに変更）
-        const audio = new Audio('/path/to/your/audio/file.m4a'); // オーディオファイルのパスを指定
+        const audio = new Audio('C:\Users\intern\Documents\led-reader\audio\ビープ音.m4a'); // オーディオファイルのパスを指定
         const source = audioCtx.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioCtx.destination);
