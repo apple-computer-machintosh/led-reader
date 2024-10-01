@@ -35,7 +35,7 @@ const Home = () => {
       const g = data[i + 1];
       const b = data[i + 2];
 
-      // ここでは単純に色をカウントするだけです
+      // 簡易的な色検出
       if (r > 200 && g < 100 && b < 100) {
         colorCounts.red++;
       } else if (g > 200 && r < 100 && b < 100) {
@@ -51,7 +51,13 @@ const Home = () => {
   return (
     <div>
       <h1>LED Binary Reader</h1>
-      <video ref={videoRef} onClick={handleCapture} style={{ width: '100%', height: 'auto' }} />
+      <video 
+        ref={videoRef} 
+        onClick={handleCapture} 
+        style={{ width: '100%', height: 'auto' }} 
+        autoPlay 
+        playsInline 
+      />
     </div>
   );
 };

@@ -20,7 +20,6 @@ const useCameraHook = () => {
       alert('カメラへのアクセスに失敗しました。設定を確認してください。');
     }
   };
-  
 
   const stopCamera = () => {
     if (streamRef.current) {
