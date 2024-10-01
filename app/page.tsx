@@ -9,6 +9,7 @@ const Home = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const [blinkCount, setBlinkCount] = useState(0);
   const [isBlinking, setIsBlinking] = useState(false);
+  const [latestRGB, setLatestRGB] = useState({ r: 0, g: 0, b: 0 });
 
   useEffect(() => {
     startCamera();
@@ -45,6 +46,11 @@ const Home = () => {
           }
           setIsBlinking(isCurrentlyBlinking);
         }
+
+        // RGB値を更新
+        const rgb = getAverageColor(imageData.data);
+        setLatestRGB(rgb);
+
         previousImageData.current = imageData.data; // 現在の画像データを保存
       }
     }
@@ -54,8 +60,7 @@ const Home = () => {
     const wasBlinking = analyzeColors(prevData) > 0;
     const isBlinking = analyzeColors(currData) > 0;
 
-    // 状態が変わった場合に点滅とみなす
-    return wasBlinking !== isBlinking;
+    return wasBlinking !== isBlinking; // 状態が変わった場合に点滅とみなす
   };
 
   const analyzeColors = (data: Uint8ClampedArray) => {
@@ -75,6 +80,23 @@ const Home = () => {
     return redCount; // 赤色のピクセル数を返す
   };
 
+  const getAverageColor = (data: Uint8ClampedArray) => {
+    let rTotal = 0, gTotal = 0, bTotal = 0;
+    const pixelCount = data.length / 4; // ピクセル数
+
+    for (let i = 0; i < data.length; i += 4) {
+      rTotal += data[i];     // 赤
+      gTotal += data[i + 1]; // 緑
+      bTotal += data[i + 2]; // 青
+    }
+
+    return {
+      r: Math.floor(rTotal / pixelCount),
+      g: Math.floor(gTotal / pixelCount),
+      b: Math.floor(bTotal / pixelCount),
+    };
+  };
+
   return (
     <div>
       <h1>LED Binary Reader</h1>
@@ -85,6 +107,7 @@ const Home = () => {
         playsInline 
       />
       <h2>点滅回数: {blinkCount}</h2>
+      <h3>最新のRGB: R: {latestRGB.r}, G: {latestRGB.g}, B: {latestRGB.b}</h3>
     </div>
   );
 };
