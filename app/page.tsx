@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react';
-import * as tf from '@tensorflow/tfjs';
+// import * as tf from '@tensorflow/tfjs';
 
 const LEDRecognition: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
