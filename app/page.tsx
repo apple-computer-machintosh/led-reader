@@ -18,9 +18,34 @@ const Home = () => {
       const ctx = canvas.getContext('2d');
       ctx?.drawImage(videoRef.current, 0, 0);
       const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-      // ここでimageDataを処理するロジックを追加
-      console.log(imageData);
+
+      if (imageData) {
+        const colorCounts = analyzeColors(imageData.data);
+        console.log('Detected Colors:', colorCounts);
+      }
     }
+  };
+
+  // 色を分析する関数
+  const analyzeColors = (data: Uint8ClampedArray) => {
+    const colorCounts = { red: 0, green: 0, blue: 0 };
+    
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+
+      // ここでは単純に色をカウントするだけです
+      if (r > 200 && g < 100 && b < 100) {
+        colorCounts.red++;
+      } else if (g > 200 && r < 100 && b < 100) {
+        colorCounts.green++;
+      } else if (b > 200 && r < 100 && g < 100) {
+        colorCounts.blue++;
+      }
+    }
+
+    return colorCounts;
   };
 
   return (
