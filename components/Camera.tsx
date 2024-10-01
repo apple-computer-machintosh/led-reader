@@ -34,7 +34,9 @@ const Camera: React.FC = () => {
   return (
     <div>
       <h1>外カメラ</h1>
-      <video ref={videoRef} style={{ width: '100%', height: 'auto' }} autoPlay playsInline />
+      <div style={{ width: '100%', height: 'auto', backgroundColor: '#381929' }}>
+        <video ref={videoRef} style={{ width: '100%', height: 'auto' }} autoPlay playsInline />
+      </div>
     </div>
   );
 };
