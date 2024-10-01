@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useRef, useState } from 'react';
 
 const LEDRecognition: React.FC = () => {
@@ -27,8 +26,8 @@ const LEDRecognition: React.FC = () => {
       const context = canvasRef.current?.getContext('2d');
 
       const detect = () => {
-        if (context && videoRef.current) {
-          context.drawImage(videoRef.current, 0, 0);
+        if (context && videoRef.current && canvasRef.current) {
+          context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
           const imageData = context.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
           const data = imageData.data;
 
