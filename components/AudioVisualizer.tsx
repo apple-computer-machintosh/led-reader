@@ -1,6 +1,11 @@
 // components/AudioVisualizer.tsx
 import React, { useEffect, useRef } from 'react';
 
+// TypeScriptにwebkitAudioContextを認識させる
+interface Window {
+  webkitAudioContext: typeof AudioContext;
+}
+
 const AudioVisualizer: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -12,12 +17,12 @@ const AudioVisualizer: React.FC = () => {
             return; // canvasまたはctxがnullの場合は処理を中止
         }
 
-        // webkitAudioContextを使うための型定義
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // AudioContextの型を明示的に指定
+        const audioCtx = new (window.AudioContext || window.AudioContext)();
         const analyser = audioCtx.createAnalyser();
 
-        // 音源の準備（ここではローカルのオーディオファイルを使用）
-        const audio = new Audio('C:\Users\intern\Documents\led-reader\audio\ビープ音.m4a'); // オーディオファイルのパスを指定
+        // 音源の準備（相対パスに変更）
+        const audio = new Audio('/path/to/your/audio/file.m4a'); // オーディオファイルのパスを指定
         const source = audioCtx.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioCtx.destination);
@@ -34,12 +39,12 @@ const AudioVisualizer: React.FC = () => {
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             const barWidth = (canvas.width / bufferLength) * 2.5;
-            let barHeight;
+            let barHeight: number;
             let x = 0;
 
             for (let i = 0; i < bufferLength; i++) {
                 barHeight = dataArray[i];
-                ctx.fillStyle = 'rgb(' + (barHeight + 100) + ',50,50)';
+                ctx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
                 ctx.fillRect(x, canvas.height - barHeight / 2, barWidth, barHeight / 2);
                 x += barWidth + 1;
             }
