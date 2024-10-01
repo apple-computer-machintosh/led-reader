@@ -8,7 +8,7 @@ const useCameraHook = () => {
   const startCamera = async () => {
     console.log('カメラ起動を試みています...');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" }}});
       console.log('カメラが成功裏に起動しました');
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
