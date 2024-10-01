@@ -34,7 +34,7 @@ const Camera: React.FC = () => {
 
   return (
     <div>
-      <h1>外カメラ</h1>
+      <h1>HELLO外カメラ</h1>
       <video ref={videoRef} style={{ width: '100%', height: 'auto' }} />
     </div>
   );
